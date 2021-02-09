@@ -40,12 +40,15 @@ class HTTPClient(object):
         self.socket.connect((host, port))
         return None
 
+    # TODO - String format the result returned by recvall
     def get_code(self, data):
         return None
-
+    
+    # TODO - String format the result returned by recvall
     def get_headers(self,data):
         return None
 
+    # TODO - String format the result returned by recvall
     def get_body(self, data):
         return None
     
@@ -67,14 +70,27 @@ class HTTPClient(object):
                 done = not part
         return buffer.decode('utf-8')
 
+    # TODO - handle 404 requests and 200 requests
     def GET(self, url, args=None):
         code = 500
+        # Is the body in the args?
         body = ""
+
+        print("THE URL IS:", url)
+        print("THE ARGS ARE:", args)
+        print()
+
         return HTTPResponse(code, body)
 
+    # TODO - handle 404 requests and 200 requests
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        print("THE URL IS:", url)
+        print("THE ARGS ARE:", args)
+        print()
+
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -93,3 +109,9 @@ if __name__ == "__main__":
         print(client.command( sys.argv[2], sys.argv[1] ))
     else:
         print(client.command( sys.argv[1] ))
+
+# Remember that a client (socket) starts a connection to a server socket that is listening.
+# There is no server in this assignment, which is why we just print out the result of GET/POST
+
+# just use urllib.parseurl and send the data? with a standard GET / POST request
+# then print the body that gets returned
