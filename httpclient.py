@@ -32,6 +32,10 @@ class HTTPResponse(object):
         self.code = code
         self.body = body
 
+    def pretty_print(self):
+        print("Code:", self.code)
+        print("Body:", self.body)
+
 class HTTPClient(object):
     #def get_host_port(self,url):
 
@@ -42,6 +46,8 @@ class HTTPClient(object):
 
     # TODO - String format the result returned by recvall
     def get_code(self, data):
+        # result = self.recvall(self.socket)
+        # print(result)
         return None
     
     # TODO - String format the result returned by recvall
@@ -76,10 +82,35 @@ class HTTPClient(object):
         # Is the body in the args?
         body = ""
 
-        print("THE URL IS:", url)
-        print("THE ARGS ARE:", args)
-        print()
+        # print("THE URL IS:", url)
+        # print("THE ARGS ARE:", args)
+        # print()
 
+        # can we use this?
+        components = urllib.parse.urlparse(url)
+        port = components.port
+        host = components.hostname
+        print(port, host)
+        if port == None:
+            # if there's no host, set port to 80 as default
+            port = 80
+
+        # host, port from url
+        self.connect(host, port)
+
+        # make up payload string, format with path and host. Encode it after?
+        payload = f'GET / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+
+        # (encoded) payload goes in here?
+        self.sendall(payload)
+
+        result = self.recvall(self.socket)
+        # Does result need to be decoded?
+        print(result)
+
+        self.close()
+
+        # Is it possible to pretty print this?
         return HTTPResponse(code, body)
 
     # TODO - handle 404 requests and 200 requests
@@ -87,9 +118,9 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        print("THE URL IS:", url)
-        print("THE ARGS ARE:", args)
-        print()
+        # print("THE URL IS:", url)
+        # print("THE ARGS ARE:", args)
+        # print()
 
         return HTTPResponse(code, body)
 
@@ -101,12 +132,15 @@ class HTTPClient(object):
     
 if __name__ == "__main__":
     client = HTTPClient()
+
+    
     command = "GET"
     if (len(sys.argv) <= 1):
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
         print(client.command( sys.argv[2], sys.argv[1] ))
+        # client.command( sys.argv[2], sys.argv[1] ).pretty_print()
     else:
         print(client.command( sys.argv[1] ))
 
@@ -115,3 +149,8 @@ if __name__ == "__main__":
 
 # just use urllib.parseurl and send the data? with a standard GET / POST request
 # then print the body that gets returned
+
+# http://www.cs.ualberta.ca/
+# http://softwareprocess.es/static/SoftwareProcess.es.html
+# http://c2.com/cgi/wiki?CommonLispHyperSpec
+# http://slashdot.org
