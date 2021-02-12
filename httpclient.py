@@ -52,6 +52,8 @@ class HTTPClient(object):
         headers = data.split("\r\n\r\n")[0]
         http_status_header = headers.split("\r\n")[0]
         
+        # print(http_status_header)
+
         # match = re.match("\d{3}", http_status_header)
         # if match:
         #     print(match.group())
@@ -101,20 +103,25 @@ class HTTPClient(object):
         body = ""
 
         components = urllib.parse.urlparse(url)
+        
         port = components.port
-        host = components.hostname
-
-        path = components.path
-
         if port == None:
             # if there's no host, set port to 80 as default
             port = 80
 
+        host = components.hostname
+
+        path = components.path
+        if len(path) == 0:
+            path = "/"
+
         # host, port from url
         self.connect(host, port)
 
-        # make up payload string, format with path and host. Encode it after?
+        # make up payload string, format with path and host.
         payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nAccept: /*/\r\nConnection: Close\r\n\r\n'
+        # payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: Close\r\n\r\n'
+        # payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nAccept: /*/\r\n\r\n'
 
         # payload goes in here to be sent
         self.sendall(payload)
@@ -143,13 +150,17 @@ class HTTPClient(object):
 
         # can we use this?
         components = urllib.parse.urlparse(url)
-        port = components.port
-        host = components.hostname
         
-        path = components.path
+        port = components.port
         if port == None:
             # if there's no host, set port to 80 as default
             port = 80
+        
+        host = components.hostname
+
+        path = components.path
+        if len(path) == 0:
+            path = "/"
 
         # host, port from url
         self.connect(host, port)
