@@ -28,7 +28,7 @@ def help():
     print("httpclient.py [GET/POST] [URL]\n")
 
 # I don't like doing it like this, but regex is not working
-status_codes = ['200', '300', '301', '302', '400', '404']
+# status_codes = ['200', '300', '301', '302', '400', '404']
 
 class HTTPResponse(object):
     def __init__(self, code=200, body=""):
@@ -54,13 +54,14 @@ class HTTPClient(object):
         
         # print(http_status_header)
 
-        # match = re.match("\d{3}", http_status_header)
-        # if match:
-        #     print(match.group())
-        for code in status_codes:
-            if code in http_status_header:
-                # print(code)
-                return code
+        match = re.search(r"\s\d{3}\s", http_status_header)
+        if match:
+            # print(match.group().strip())
+            return match.group().strip()
+        # for code in status_codes:
+        #     if code in http_status_header:
+        #         # print(code)
+        #         return code
 
         return 500
     
