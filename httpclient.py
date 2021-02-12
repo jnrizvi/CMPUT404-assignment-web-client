@@ -27,6 +27,9 @@ import urllib.parse
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
 
+# I don't like doing it like this, but regex is not working
+status_codes = ['200', '300', '301', '302', '400', '404']
+
 class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
@@ -46,16 +49,37 @@ class HTTPClient(object):
 
     # TODO - String format the result returned by recvall
     def get_code(self, data):
-        # result = self.recvall(self.socket)
-        # print(result)
+        headers = data.split("\r\n\r\n")[0]
+        http_status_header = headers.split("\r\n")[0]
+        
+        # print(http_status_header, type(http_status_header))
+
+        # match = re.match("\d{3}", http_status_header)
+        # if match:
+        for code in status_codes:
+            if code in http_status_header:
+                # print(code)
+                return code
+            # print(match.group())
+            # return match.group()
+
         return None
     
     # TODO - String format the result returned by recvall
     def get_headers(self,data):
+        headers = data.split("\r\n\r\n")[0]
+        headers_as_list = headers.split("\r\n")
+        
+        # print(headers_as_list)
+        return headers_as_list
         return None
 
     # TODO - String format the result returned by recvall
     def get_body(self, data):
+        body = data.split("\r\n\r\n")[1]
+
+        # print(body)
+        return body
         return None
     
     def sendall(self, data):
@@ -79,18 +103,17 @@ class HTTPClient(object):
     # TODO - handle 404 requests and 200 requests
     def GET(self, url, args=None):
         code = 500
-        # Is the body in the args?
         body = ""
 
-        # print("THE URL IS:", url)
-        # print("THE ARGS ARE:", args)
-        # print()
+        print("THE URL IS:", url)
+        print("THE ARGS ARE:", args)
+        print()
 
         # can we use this?
         components = urllib.parse.urlparse(url)
         port = components.port
         host = components.hostname
-        print(port, host)
+        # print("port:", port, "host:", host)
         if port == None:
             # if there's no host, set port to 80 as default
             port = 80
@@ -105,22 +128,30 @@ class HTTPClient(object):
         self.sendall(payload)
 
         result = self.recvall(self.socket)
-        # Does result need to be decoded?
-        print(result)
+        
+        # status code (within headers)
+        code = self.get_code(result)
+
+        # headers
+        headers = self.get_headers(result)
+
+        # body
+        body = self.get_body(result)
 
         self.close()
 
         # Is it possible to pretty print this?
-        return HTTPResponse(code, body)
+        return HTTPResponse(int(code), body)
 
     # TODO - handle 404 requests and 200 requests
+    # I think args is referring to what's in the url: parameter=value
     def POST(self, url, args=None):
         code = 500
         body = ""
 
-        # print("THE URL IS:", url)
-        # print("THE ARGS ARE:", args)
-        # print()
+        print("THE URL IS:", url)
+        print("THE ARGS ARE:", args)
+        print()
 
         return HTTPResponse(code, body)
 
