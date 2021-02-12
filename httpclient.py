@@ -22,7 +22,7 @@ import sys
 import socket
 import re
 # you may use urllib to encode data appropriately
-import urllib.parse
+import urllib.parse 
 
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
@@ -52,18 +52,15 @@ class HTTPClient(object):
         headers = data.split("\r\n\r\n")[0]
         http_status_header = headers.split("\r\n")[0]
         
-        # print(http_status_header, type(http_status_header))
-
         # match = re.match("\d{3}", http_status_header)
         # if match:
+        #     print(match.group())
         for code in status_codes:
             if code in http_status_header:
                 # print(code)
                 return code
-            # print(match.group())
-            # return match.group()
 
-        return None
+        return 500
     
     # TODO - String format the result returned by recvall
     def get_headers(self,data):
@@ -72,7 +69,6 @@ class HTTPClient(object):
         
         # print(headers_as_list)
         return headers_as_list
-        return None
 
     # TODO - String format the result returned by recvall
     def get_body(self, data):
@@ -80,7 +76,6 @@ class HTTPClient(object):
 
         # print(body)
         return body
-        return None
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -105,15 +100,12 @@ class HTTPClient(object):
         code = 500
         body = ""
 
-        print("THE URL IS:", url)
-        print("THE ARGS ARE:", args)
-        print()
-
-        # can we use this?
         components = urllib.parse.urlparse(url)
         port = components.port
         host = components.hostname
-        # print("port:", port, "host:", host)
+
+        path = components.path
+
         if port == None:
             # if there's no host, set port to 80 as default
             port = 80
@@ -122,7 +114,59 @@ class HTTPClient(object):
         self.connect(host, port)
 
         # make up payload string, format with path and host. Encode it after?
-        payload = f'GET / HTTP/1.1\r\nHost: {host}\r\n\r\n'
+        payload = f'GET {path} HTTP/1.1\r\nHost: {host}\r\nAccept: /*/\r\nConnection: Close\r\n\r\n'
+
+        # payload goes in here to be sent
+        self.sendall(payload)
+
+        result = self.recvall(self.socket)
+        
+        # status code (within headers)
+        code = self.get_code(result)
+
+        # headers
+        headers = self.get_headers(result)
+
+        # body
+        body = self.get_body(result)
+        print(body)
+
+        self.close()
+
+        return HTTPResponse(int(code), body)
+
+    # TODO - handle 404 requests and 200 requests
+    # I think args is referring to what's in the url: parameter=value
+    def POST(self, url, args=None):
+        code = 500
+        body = ""
+
+        # can we use this?
+        components = urllib.parse.urlparse(url)
+        port = components.port
+        host = components.hostname
+        
+        path = components.path
+        if port == None:
+            # if there's no host, set port to 80 as default
+            port = 80
+
+        # host, port from url
+        self.connect(host, port)
+
+        keyValues = []
+        if args == None:
+            
+            args = ''
+        else:
+            # build a string of fields and values from the args, if provided. Cast the dict to a string and add it to payload
+            args = str(urllib.parse.urlencode(args))
+
+        # make up payload string, format with path and host. 
+        # Args should go in here as well if they are not None
+        # Need to close the connection too
+        # Need content length too (length of args string)
+        payload = f'POST {path} HTTP/1.1\r\nHost: {host}\r\nAccept: /*/\r\nConnection: Close\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(args)}\r\n\r\n{args}\r\n\r\n'
 
         # (encoded) payload goes in here?
         self.sendall(payload)
@@ -137,23 +181,11 @@ class HTTPClient(object):
 
         # body
         body = self.get_body(result)
+        print(body)
 
         self.close()
 
-        # Is it possible to pretty print this?
         return HTTPResponse(int(code), body)
-
-    # TODO - handle 404 requests and 200 requests
-    # I think args is referring to what's in the url: parameter=value
-    def POST(self, url, args=None):
-        code = 500
-        body = ""
-
-        print("THE URL IS:", url)
-        print("THE ARGS ARE:", args)
-        print()
-
-        return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
